@@ -1,0 +1,4 @@
+repository "GameDevProject@m4rG4d@cloud"
+  path "/"
+    br "/main"
+    co "/main"
