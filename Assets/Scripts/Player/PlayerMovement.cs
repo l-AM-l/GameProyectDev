@@ -45,6 +45,8 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    //fixedupdate
+
     void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);

@@ -1204,7 +1204,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 2054057213}
   followSpeed: 0.1
-  offset: {x: 0, y: 2, z: -1}
+  offset: {x: 0, y: 0, z: -10}
 --- !u!1001 &1107601363
 PrefabInstance:
   m_ObjectHideFlags: 0

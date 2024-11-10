@@ -8,14 +8,14 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     [SerializeField] private Transform playerTransform;  // Referencia al Transform del jugador
-    [SerializeField] public float followSpeed = 0.1f;   // Velocidad de seguimiento
-    [SerializeField] public Vector3 offset;             // Offset de la c√°mara respecto al jugador
+    [SerializeField] private float followSpeed = 0.1f;   // Velocidad de seguimiento
+    [SerializeField] private Vector3 offset;             // Offset de la c·mara respecto al jugador
 
-    void Update()
+    void LateUpdate()
     {
         if (playerTransform != null)
         {
-            // Mueve la c√°mara suavemente hacia la posici√≥n del jugador con el offset
+            // Mueve la c·mara suavemente hacia la posiciÛn del jugador con el offset
             Vector3 targetPosition = playerTransform.position + offset;
             transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed);
         }

@@ -12,6 +12,7 @@ public class Building : MonoBehaviour
 
     private BuildingUI buildingUI;
     private BuildingUnlockSystem unlockSystem;
+    internal Sprite buildingIcon;
 
     private void Start()
     {
