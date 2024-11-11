@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Witch
+  - Ground
   layers:
   - Default
   - TransparentFX
@@ -41,4 +42,25 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 686664257
+    locked: 0
+  - name: Foreground2
+    uniqueID: 3839866363
+    locked: 0
+  - name: Foreground1
+    uniqueID: 276013231
+    locked: 0
+  - name: Foreground
+    uniqueID: 1956463771
+    locked: 0
+  - name: Buildingds
+    uniqueID: 1334279459
+    locked: 0
+  - name: Player
+    uniqueID: 2145376919
+    locked: 0
+  - name: Platform
+    uniqueID: 3641040021
     locked: 0
