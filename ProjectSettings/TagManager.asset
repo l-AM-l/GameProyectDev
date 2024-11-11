@@ -10,7 +10,7 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Platform
   - Water
   - UI
   - 
@@ -43,24 +43,30 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Sky
+    uniqueID: 1531510487
+    locked: 0
   - name: Background
-    uniqueID: 686664257
+    uniqueID: 1216065439
     locked: 0
-  - name: Foreground2
-    uniqueID: 3839866363
+  - name: Background
+    uniqueID: 3648624605
     locked: 0
-  - name: Foreground1
-    uniqueID: 276013231
+  - name: Foregrounds
+    uniqueID: 2675395191
     locked: 0
-  - name: Foreground
-    uniqueID: 1956463771
-    locked: 0
-  - name: Buildingds
-    uniqueID: 1334279459
-    locked: 0
-  - name: Player
-    uniqueID: 2145376919
+  - name: Buildings
+    uniqueID: 2042939251
     locked: 0
   - name: Platform
-    uniqueID: 3641040021
+    uniqueID: 3888781997
+    locked: 0
+  - name: NPC
+    uniqueID: 3603857371
+    locked: 0
+  - name: Player
+    uniqueID: 2147094757
+    locked: 0
+  - name: ForeGround
+    uniqueID: 1463002459
     locked: 0
