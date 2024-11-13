@@ -55,6 +55,12 @@ TagManager:
   - name: Foregrounds
     uniqueID: 2675395191
     locked: 0
+  - name: 1
+    uniqueID: 2965701777
+    locked: 0
+  - name: 2
+    uniqueID: 758729085
+    locked: 0
   - name: Buildings
     uniqueID: 2042939251
     locked: 0

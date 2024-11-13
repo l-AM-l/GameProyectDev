@@ -102,7 +102,6 @@ public class NPCInteraction : MonoBehaviour
     PlayerPrefs.Save(); // Asegúrate de guardar los cambios
 
     SceneManager.LoadScene("BaseScene");  // Cargar la escena de la base
-    dialoguePanel.SetActive(false);  // Ocultar el panel
 }
     public void OnCancelButtonClick()
     {

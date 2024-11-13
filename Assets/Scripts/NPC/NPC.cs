@@ -96,7 +96,7 @@ public class NPC : MonoBehaviour
 
     public void SetJobPosition(Vector3 position)
     {
-        targetPosition = position;
+        targetPosition = position ;
         isMovingToJob = true;
         Debug.Log("Npc is moving to job at position: " + targetPosition);
     }
