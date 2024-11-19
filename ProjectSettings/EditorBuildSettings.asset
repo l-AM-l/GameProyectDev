@@ -9,6 +9,15 @@ EditorBuildSettings:
     path: Assets/Scenes/ExplorationScene.unity
     guid: 5420b8422b718a249a0138ca7ea66479
   - enabled: 1
+    path: Assets/Scenes/New Scene 1.unity
+    guid: 083c1b88db7764544b54f586eb9de767
+  - enabled: 1
+    path: Assets/Scenes/New Scene 2.unity
+    guid: 4e8c672c209ede8468b149fcb4cee3f1
+  - enabled: 0
+    path: Assets/Scenes/Platforming.unity
+    guid: 912d9b12980b42b41ad1c915eeca26ac
+  - enabled: 1
     path: Assets/Scenes/BaseScene.unity
     guid: 8f566b485a5e0cd4fb099e9356b10683
   - enabled: 1

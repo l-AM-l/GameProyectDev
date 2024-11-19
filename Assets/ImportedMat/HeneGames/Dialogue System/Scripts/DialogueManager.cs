@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,6 +12,7 @@ namespace HeneGames.DialogueSystem
         private float coolDownTimer;
         private bool dialogueIsOn;
         private DialogueTrigger dialogueTrigger;
+        public GameObject Louise;
 
         public enum TriggerState
         {
@@ -25,10 +27,11 @@ namespace HeneGames.DialogueSystem
         public UnityEvent startDialogueEvent;
         public UnityEvent nextSentenceDialogueEvent;
         public UnityEvent endDialogueEvent;
-
+        
         [Header("Dialogue")]
         [SerializeField] private TriggerState triggerState;
         [SerializeField] private List<NPC_Centence> sentences = new List<NPC_Centence>();
+    
 
         private void Update()
         {
@@ -80,6 +83,8 @@ namespace HeneGames.DialogueSystem
                 }
             }
         }
+
+       
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
@@ -188,78 +193,101 @@ namespace HeneGames.DialogueSystem
             coolDownTimer = sentences[currentSentence].skipDelayTime;
         }
 
-        public void NextSentence(out bool lastSentence)
-        {
-            //The next sentence cannot be changed immediately after starting
-            if (coolDownTimer > 0f)
-            {
-                lastSentence = false;
-                return;
-            }
-
-            //Add one to sentence index
-            currentSentence++;
-
-            //Next sentence event
-            if (dialogueTrigger != null)
-            {
-                dialogueTrigger.nextSentenceDialogueEvent.Invoke();
-            }
-
-            nextSentenceDialogueEvent.Invoke();
-
-            //If last sentence stop dialogue and return
-            if (currentSentence > sentences.Count - 1)
-            {
-                StopDialogue();
-
-                lastSentence = true;
-
-                return;
-            }
-
-            //If not last sentence continue...
-            lastSentence = false;
-
-            //Play dialogue sound
-            PlaySound(sentences[currentSentence].sentenceSound);
-
-            //Show next sentence in dialogue UI
-            ShowCurrentSentence();
-
-            //Cooldown timer
-            coolDownTimer = sentences[currentSentence].skipDelayTime;
-        }
-
-       public void StopDialogue()
+       public void NextSentence(out bool lastSentence)
 {
-    // Evento para detener el diálogo
+    // La siguiente oración no puede cambiarse inmediatamente después de comenzar
+    if (coolDownTimer > 0f)
+    {
+        lastSentence = false;
+        return;
+    }
+
+    // Añade uno al índice de la oración actual
+    currentSentence++;
+
+    // Evento de siguiente oración
     if (dialogueTrigger != null)
     {
-        dialogueTrigger.endDialogueEvent.Invoke();
+        dialogueTrigger.nextSentenceDialogueEvent.Invoke();
     }
 
-    endDialogueEvent.Invoke();
+    nextSentenceDialogueEvent.Invoke();
 
-    // Ocultar la UI del diálogo
-    DialogueUI.instance.ClearText();
-
-    // Detener el audio para que no quede ningún sonido en segundo plano
-    if (audioSource != null)
+    // Si es la última oración, detén el diálogo
+    if (currentSentence > sentences.Count - 1)
     {
-        audioSource.Stop();
+        StopDialogue();
+        lastSentence = true;
+        return;
     }
 
-    // Si el NPC tiene la opción de ir a la base, la mostramos al terminar el diálogo
-    if (dialogueTrigger != null && dialogueTrigger.TryGetComponent<DialogueOption>(out DialogueOption dialogueOption))
-    {
-        dialogueOption.ShowOption();
-    }
+    // Si no es la última oración, continúa...
+    lastSentence = false;
 
-    // Restablecer los estados
-    dialogueIsOn = false;
-    dialogueTrigger = null;
+    // Reproduce el sonido de la oración
+    PlaySound(sentences[currentSentence].sentenceSound);
+
+    // Muestra la siguiente oración en la UI de diálogo
+    ShowCurrentSentence();
+
+    // Temporizador de espera
+    coolDownTimer = sentences[currentSentence].skipDelayTime;
 }
+
+    // Nuevo evento que se invocará al terminar el diálogo
+    public UnityEvent onDialogueEnd;
+    
+
+public void CheckAndDestroyCharacter()
+{
+        if (gameObject.CompareTag("Louise")||gameObject.CompareTag("NPC")){
+        {
+            // Inicia la corrutina para destruir después de 2 segundos
+            StartCoroutine(DestroyAndSpawnAfterDelay());
+        }
+    }
+}
+
+    private IEnumerator DestroyAndSpawnAfterDelay()
+    {
+        // Espera 2 segundos antes de destruir el personaje
+        yield return new WaitForSeconds(2f);
+
+        // Destruye el personaje actual
+        Destroy(gameObject);
+        
+        if (gameObject.CompareTag("Louise")){
+            Louise.SetActive(true);
+        }
+        
+
+
+}
+   
+    public void StopDialogue()
+    {
+        // Lógica existente para detener el diálogo
+        if (dialogueTrigger != null)
+        {
+            dialogueTrigger.endDialogueEvent.Invoke();
+        }
+
+        endDialogueEvent.Invoke();
+
+        // Invocar el nuevo evento después de detener el diálogo
+       onDialogueEnd?.Invoke();
+
+        // Restablecer estados
+        DialogueUI.instance.ClearText();
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+        }
+        dialogueIsOn = false;
+        dialogueTrigger = null;
+    }
+
+
 
 
         private void PlaySound(AudioClip _audioClip)

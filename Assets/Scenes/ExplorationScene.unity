@@ -821,7 +821,7 @@ TilemapRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -378686335
-  m_SortingLayer: 1
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -2948,6 +2948,8 @@ MonoBehaviour:
   endDialogueEvent:
     m_PersistentCalls:
       m_Calls: []
+  newCharacterPrefab: {fileID: 0}
+  spawnPoint: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

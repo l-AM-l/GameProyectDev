@@ -15,12 +15,4 @@ public class BuildingInteraction : MonoBehaviour
         buildingPanel.UpdateBuildingPanel(buildingData, assignedNPCs);
         Debug.Log("Edificio seleccionado: " + buildingData.buildingType.ToString());
     }
-
-    // Método para asignar un NPC al edificio
-    //public void AssignNPC(NPC npc)
-    //{
-    //    assignedNPCs.Add(npc);
-    //    buildingPanel.UpdateBuildingPanel(buildingData, assignedNPCs);  // Actualizar el panel al asignar un NPC
-
-    //}
 }

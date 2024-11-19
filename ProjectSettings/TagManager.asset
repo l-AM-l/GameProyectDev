@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Witch
   - Ground
+  - Tutorial
+  - Enemy
+  - Louise
+  - NPC
   layers:
   - Default
   - TransparentFX
@@ -51,6 +55,9 @@ TagManager:
     locked: 0
   - name: Background
     uniqueID: 3648624605
+    locked: 0
+  - name: 1.5
+    uniqueID: 1655128967
     locked: 0
   - name: Foregrounds
     uniqueID: 2675395191

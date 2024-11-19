@@ -15,19 +15,6 @@ public class BuildingPanel : MonoBehaviour
 
      private bool isPanelVisible = false; // Para controlar si el panel está visible o no
 
-   /*void Update()
-    {
-        // Detectar si la tecla Tab ha sido presionada
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            // Alternar el estado del panel
-            isPanelVisible = !isPanelVisible;
-
-            // Activar o desactivar el panel en función de su estado actual
-            Debug.Log("ui building actuvado");
-            buildingPanel.SetActive(isPanelVisible);
-        }
-    }*/
     private Building currentBuilding;  // Edificio actualmente seleccionado
 
     // Método para actualizar el panel cuando se selecciona un edificio
