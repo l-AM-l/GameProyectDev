@@ -31,15 +31,16 @@ public class Teleportation : MonoBehaviour
         }
     }
 
-    private void SwitchScene(string targetSceneName)
-    {
-        isSwitching = true; // Bloquea cambios adicionales hasta que termine el actual
-        StartCoroutine(TransitionAndLoadScene(targetSceneName));
-    }
-
+  private void SwitchScene(string targetSceneName)
+{
+    // Guarda el estado de energía antes de cambiar de escena
+    isSwitching = true; // Bloquea cambios adicionales hasta que termine el actual
+    StartCoroutine(TransitionAndLoadScene(targetSceneName));
+}
     private System.Collections.IEnumerator TransitionAndLoadScene(string targetSceneName)
     {
         // Inicia la animación de final
+        
         if (transitionAnim != null)
         {
             transitionAnim.SetTrigger("End");
@@ -54,7 +55,7 @@ public class Teleportation : MonoBehaviour
         {
             yield return null; // Espera hasta que la escena esté completamente cargada
         }
-
+        
         // Inicia la animación de inicio
         if (transitionAnim != null)
         {

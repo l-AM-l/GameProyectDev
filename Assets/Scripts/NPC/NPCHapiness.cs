@@ -6,7 +6,7 @@ using System.Collections;
 public class NPCHapiness : MonoBehaviour
 {
     private NPC npc;
-    private float happiness = 50f; 
+    private float happiness = 10f; 
     private float maxHappiness = 100f; 
     private float happinessIncreaseRate = 10f; 
     private float happinessOverTimeRate = 5f; 
@@ -17,6 +17,15 @@ public class NPCHapiness : MonoBehaviour
 
     private Coroutine happinessCoroutine;
 
+    public float GetCurrentHappiness()
+{
+    return happiness;
+}
+public void SetHappiness(float value)
+{
+    happiness = Mathf.Clamp(value, 0, maxHappiness);
+    UpdateHappinessUI();
+}
     private void Start()
     {
         npc = GetComponent<NPC>();

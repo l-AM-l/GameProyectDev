@@ -37,11 +37,15 @@ public class MySceneManager : MonoBehaviour
             NextScene();
         }
     }
-    public IEnumerator LoadLevel(){
-        transitionAnim.SetTrigger("End");
-        yield return new WaitForSeconds(1);
-        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1);
-        transitionAnim.SetTrigger("Start");
+  public IEnumerator LoadLevel()
+{
+    // Guarda el estado de energía
+    
+    transitionAnim.SetTrigger("End");
+    yield return new WaitForSeconds(1);
+    
+    SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1);
+    transitionAnim.SetTrigger("Start");
+}
 
-    }
 }

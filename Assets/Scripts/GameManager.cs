@@ -7,9 +7,9 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-    
+
     public int maxEnergy = 100;  // Valor máximo de energía
-    public Slider energySlider; 
+    public Slider energySlider;
     public TextMeshProUGUI energyText;
 
     private void Start()
@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
             maxEnergy=0;
         }
         else{
-             maxEnergy -= amount;
+            maxEnergy -= amount;
         }
        
         
@@ -60,17 +60,15 @@ public class GameManager : MonoBehaviour
         Debug.Log("Energía restante: " + maxEnergy);
         UpdateEnergyUI();
     }
-        
+
     public void AddEnergy(int amount)
-{
-        if(maxEnergy>=100){
-            maxEnergy=100;
-        }
-        else{
-             maxEnergy += amount;
-        }
-        Debug.Log("Energía actual: " + maxEnergy);
-       
-    UpdateEnergyUI();
-}
+    {
+        maxEnergy = Mathf.Min(maxEnergy + amount, 100); // Límite máximo de energía
+        Debug.Log($"Energía actual: {maxEnergy}");
+        UpdateEnergyUI();
+    }
+    
+    public string characterToActivate; // Tag del personaje a activar
+
+    
 }

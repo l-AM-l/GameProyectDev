@@ -7,7 +7,10 @@ using UnityEngine;
 {
     Mines,
     Carpentry,
-    Nursery
+    Nursery,
+    CookingStation,
+    Janitor, 
+    Farmer
 
 }
 
