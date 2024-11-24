@@ -14,7 +14,7 @@ public class NPC : MonoBehaviour
 {
     // Happiness management for the NPC
     public NPCHapiness npcHapiness;
-
+    public int npcID;
     // NPC-specific details
     public NPCtype nPCtype; // The type of NPC
     public string job; // Current job of the NPC
@@ -43,7 +43,52 @@ public class NPC : MonoBehaviour
     {
         npcInfoUI.SetActive(false); // Hide NPC info UI
         npcHapiness = GetComponent<NPCHapiness>(); // Initialize happiness component
+        LoadNPCState(npcID);
     }
+    /// <summary>
+/// Saves the NPC's current position and job to PlayerPrefs.
+/// </summary>
+public void SaveNPCState(int npcID)
+{
+    // Save position
+    PlayerPrefs.SetFloat($"NPC_{npcID}_PosX", transform.position.x);
+    PlayerPrefs.SetFloat($"NPC_{npcID}_PosY", transform.position.y);
+    PlayerPrefs.SetFloat($"NPC_{npcID}_PosZ", transform.position.z);
+
+    // Save job
+    PlayerPrefs.SetString($"NPC_{npcID}_Job", string.IsNullOrEmpty(job) ? "Unassigned" : job);
+
+    PlayerPrefs.Save();
+    Debug.Log($"NPC {npcID} state saved.");
+}
+
+/// <summary>
+/// Loads the NPC's position and job from PlayerPrefs.
+/// </summary>
+public void LoadNPCState(int npcID)
+{
+    // Load position
+    float posX = PlayerPrefs.GetFloat($"NPC_{npcID}_PosX", transform.position.x);
+    float posY = PlayerPrefs.GetFloat($"NPC_{npcID}_PosY", transform.position.y);
+    float posZ = PlayerPrefs.GetFloat($"NPC_{npcID}_PosZ", transform.position.z);
+    transform.position = new Vector3(posX, posY, posZ);
+
+    // Load job
+    job = PlayerPrefs.GetString($"NPC_{npcID}_Job", "Unassigned");
+
+    if (job != "Unassigned")
+    {
+        Building assignedBuilding = FindBuildingByJob(job);
+        if (assignedBuilding != null)
+        {
+            assignedBuilding.assignedNPCs.Add(this);
+            building = assignedBuilding;
+            MoveToAssignedBuilding(assignedBuilding);
+        }
+    }
+
+    Debug.Log($"NPC {npcID} state loaded. Job: {job}, Position: {transform.position}");
+}
 
     /// <summary>
     /// Detects when the player enters the NPC's area.
@@ -118,6 +163,7 @@ public class NPC : MonoBehaviour
         {
             isMovingToJob = false;
             Debug.Log("NPC has arrived at the building.");
+            SaveNPCState(npcID);
             npcHapiness.StartIncreasingHappiness(); // Start happiness increase
         }
     }
@@ -177,7 +223,7 @@ public class NPC : MonoBehaviour
 /// Handles both assigning the NPC to a new building and unassigning if no job is selected.
 /// </summary>
 /// <param name="dropdown">The dropdown menu used to select the NPC's job.</param>
-private void ChangeJob(TMP_Dropdown dropdown)
+public void ChangeJob(TMP_Dropdown dropdown)
 {
     Debug.Log("Job change initiated.");
 

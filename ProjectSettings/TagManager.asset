@@ -10,6 +10,8 @@ TagManager:
   - Enemy
   - Louise
   - NPC
+  - EnergySlider
+  - EnergyText
   layers:
   - Default
   - TransparentFX

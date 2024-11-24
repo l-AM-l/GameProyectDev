@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// PlayerPersistence handles saving and restoring the player's position
 /// using PlayerPrefs to ensure the player starts in the same position
-/// after a scene transition or game reload.
+/// after a scene transition or game reload. Clears saved data when the game exits.
 /// </summary>
 public class PlayerPersistence : MonoBehaviour
 {
@@ -34,4 +34,9 @@ public class PlayerPersistence : MonoBehaviour
         PlayerPrefs.SetFloat("y", transform.position.y);
         PlayerPrefs.SetFloat("z", transform.position.z);
     }
+
+    /// <summary>
+    /// Clears the saved position data from PlayerPrefs when the game exits.
+    /// </summary>
+    /// /*
 }

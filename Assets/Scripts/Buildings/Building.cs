@@ -36,30 +36,64 @@ public class Building : MonoBehaviour
     public GameObject lockUI; // Panel for unlocking the building
     public TextMeshProUGUI costText; // Text displaying the unlock cost
     public Button unlockButton; // Button to unlock the building
+  
 
+    
     private void Start()
     {
-        // Ensure UI elements are hidden at the start
+        // Load the unlock state at the start
         buildingInfoUI.SetActive(false);
-        lockUI.SetActive(false);
+    LoadBuildingState();
 
-        // Assign the unlock button's function
-        unlockButton.onClick.AddListener(AttemptUnlockBuilding);
+    // Ensure UI elements are hidden at the start
+    
+    //lockUI.SetActive(!isUnlocked); // Show lock UI if the building is locked
+
+    // Assign the unlock button's function
+    unlockButton.onClick.AddListener(AttemptUnlockBuilding);
     }
 
     /// <summary>
     /// Unlocks the building if the player has enough energy.
     /// </summary>
     public void UnlockBuilding()
+{
+    if (!isUnlocked)
     {
-        if (!isUnlocked)
-        {
-            isUnlocked = true; // Mark the building as unlocked
-            GameManager.instance.UseEnergy(requiredEnergyToUnlock); // Deduct the required energy
-            Debug.Log("Building unlocked: " + buildingType.ToString());
-            lockUI.SetActive(false); // Hide the unlock panel
-        }
+        isUnlocked = true; // Mark the building as unlocked
+        GameManager.instance.UseEnergy(requiredEnergyToUnlock); // Deduct the required energy
+        SaveBuildingState(); // Save the unlock state
+        Debug.Log("Building unlocked: " + buildingType.ToString());
+        lockUI.SetActive(false); // Hide the unlock panel
     }
+}   // <summary>
+/// Saves the building's state to PersistentData or PlayerPrefs.
+/// </summary>
+private void SaveBuildingState()
+{
+    PlayerPrefs.SetInt($"{buildingType}_isUnlocked", isUnlocked ? 1 : 0);
+    PlayerPrefs.Save(); // Ensure the data is written to disk
+    
+}
+private void OnApplicationQuit()
+{
+    // Clear all PlayerPrefs data
+    PlayerPrefs.DeleteAll();
+
+    // Ensure the changes are saved immediately
+    PlayerPrefs.Save();
+
+    Debug.Log("All saved data cleared on application quit.");
+}
+
+/// <summary>
+/// Loads the building's state from PersistentData or PlayerPrefs.
+/// </summary>
+private void LoadBuildingState()
+{
+    buildingInfoUI.SetActive(false);
+    isUnlocked = PlayerPrefs.GetInt($"{buildingType}_isUnlocked", 0) == 1; // Default to locked
+}
 
     /// <summary>
     /// Attempts to unlock the building when the button is pressed.

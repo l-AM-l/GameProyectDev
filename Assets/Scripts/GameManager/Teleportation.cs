@@ -1,6 +1,8 @@
 using System.Diagnostics;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// Teleportation manages scene transitions between two predefined scenes.
@@ -10,6 +12,7 @@ public class Teleportation : MonoBehaviour
 {
     [Header("Scene Names")]
     [Tooltip("Name of the base scene to switch to.")]
+    Building building;
     private string baseSceneName = "BaseScene"; // Name of the base scene
     [Tooltip("Name of the exploration scene to switch to.")]
     private string explorationSceneName = "PlatformerScene"; // Name of the exploration scene
@@ -34,11 +37,22 @@ public class Teleportation : MonoBehaviour
             // Switch to the appropriate scene based on the current scene
             if (SceneManager.GetActiveScene().name == baseSceneName)
             {
+                NPCManager npcManager = FindObjectOfType<NPCManager>();
+        if (npcManager != null)
+        {
+            foreach (NPC npc in npcManager.GetComponentsInChildren<NPC>())
+            {
+                npc.SaveNPCState(npc.npcID);
+            }
+        }
                 SwitchScene(explorationSceneName);
+                
             }
             else if (SceneManager.GetActiveScene().name == explorationSceneName)
             {
+               
                 SwitchScene(baseSceneName);
+                 
             }
         }
     }
@@ -48,41 +62,45 @@ public class Teleportation : MonoBehaviour
     /// </summary>
     /// <param name="targetSceneName">The name of the scene to switch to.</param>
     private void SwitchScene(string targetSceneName)
-    {
-        // Prevent additional transitions during the current switch
-        isSwitching = true;
-        StartCoroutine(TransitionAndLoadScene(targetSceneName));
-    }
+{
+    // Guarda los datos antes de cambiar de escena
+    //SaveStorage.instance.GetSaveByFileName("SaveFileName").Save();
+
+    // Realiza la transición de escena
+    isSwitching = true;
+    StartCoroutine(TransitionAndLoadScene(targetSceneName));
+}
+
 
     /// <summary>
     /// Handles the transition animation and asynchronous loading of the target scene.
     /// </summary>
     /// <param name="targetSceneName">The name of the scene to switch to.</param>
-    private System.Collections.IEnumerator TransitionAndLoadScene(string targetSceneName)
+   private System.Collections.IEnumerator TransitionAndLoadScene(string targetSceneName)
+{
+    if (transitionAnim != null)
     {
-        // Trigger the end animation if an Animator is assigned
-        if (transitionAnim != null)
-        {
-            transitionAnim.SetTrigger("End");
-        }
-
-        // Wait for the transition animation to finish
-        yield return new WaitForSeconds(1f); // Adjust this duration to match your animation
-
-        // Load the target scene asynchronously
-        var operation = SceneManager.LoadSceneAsync(targetSceneName);
-        while (!operation.isDone)
-        {
-            yield return null; // Wait until the scene is fully loaded
-        }
-
-        // Trigger the start animation for the new scene if an Animator is assigned
-        if (transitionAnim != null)
-        {
-            transitionAnim.SetTrigger("Start");
-        }
-
-        // Allow new transitions after the current one completes
-        isSwitching = false;
+        transitionAnim.SetTrigger("End");
     }
+
+    yield return new WaitForSeconds(1f);
+
+    var operation = SceneManager.LoadSceneAsync(targetSceneName);
+
+    while (!operation.isDone)
+    {
+        yield return null;
+    }
+
+    // Cargar los datos después de la transición
+    //SaveStorage.instance.GetSaveByFileName("SaveFileName").Load();
+
+    if (transitionAnim != null)
+    {
+        transitionAnim.SetTrigger("Start");
+    }
+
+    isSwitching = false;
+}
+
 }

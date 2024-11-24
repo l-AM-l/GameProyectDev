@@ -13,7 +13,7 @@ public class NPCHapiness : MonoBehaviour
     private NPC npc; // Reference to the associated NPC component
 
     // Happiness properties
-    private float happiness = 10f; // Current happiness value
+    public float happiness = 10f; // Current happiness value
     private float maxHappiness = 100f; // Maximum happiness value
     private float happinessIncreaseRate = 10f; // Happiness increment when assigned a job
     private float happinessOverTimeRate = 5f; // Happiness increment over time
@@ -49,6 +49,8 @@ public class NPCHapiness : MonoBehaviour
     /// <summary>
     /// Initializes the happiness system and ensures UI elements are correctly set up.
     /// </summary>
+    public int npcID;
+
     private void Start()
     {
         npc = GetComponent<NPC>(); // Get the NPC component
@@ -63,12 +65,49 @@ public class NPCHapiness : MonoBehaviour
             Debug.Log("Happiness text is not assigned");
         }
 
-        // Set slider properties and initial values
+        // Set slider properties
         happinessSlider.maxValue = maxHappiness;
-        happinessSlider.value = happiness;
+
+        // Load saved happiness data
+        LoadHappiness();
+
+        // Update UI
         UpdateHappinessUI();
     }
+     /// <summary>
+    /// Saves the happiness percentage of this NPC to PlayerPrefs.
+    /// </summary>
+    public void SaveHappiness()
+    {
+        PlayerPrefs.SetFloat($"NPC_{npcID}_Happiness", happiness);
+        PlayerPrefs.Save();
+        Debug.Log($"NPC {npcID} happiness saved: {happiness}%");
+    }
 
+    /// <summary>
+    /// Loads the happiness percentage of this NPC from PlayerPrefs.
+    /// Defaults to 10% if no saved value exists.
+    /// </summary>
+    public void LoadHappiness()
+    {
+        happiness = PlayerPrefs.GetFloat($"NPC_{npcID}_Happiness", 10f); // Default to 10%
+        Debug.Log($"NPC {npcID} happiness loaded: {happiness}%");
+    }
+
+    /// <summary>
+    /// Clears saved happiness data for this NPC.
+    /// </summary>
+    public void ClearHappinessData()
+    {
+        PlayerPrefs.DeleteKey($"NPC_{npcID}_Happiness");
+        PlayerPrefs.Save();
+        Debug.Log($"NPC {npcID} happiness data cleared.");
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveHappiness(); // Save happiness on game exit
+    }
     /// <summary>
     /// Increases the happiness by a fixed amount when the NPC is assigned a job.
     /// </summary>
@@ -147,5 +186,6 @@ public class NPCHapiness : MonoBehaviour
         happinessSlider.value = happiness; // Update the slider value
         happinessText.text = Mathf.RoundToInt(happiness).ToString() + "%"; // Update the text
         Debug.Log("Happiness UI updated: " + happiness + "%");
+        SaveHappiness();
     }
 }
