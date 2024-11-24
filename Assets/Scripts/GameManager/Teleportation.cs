@@ -2,24 +2,36 @@ using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Teleportation manages scene transitions between two predefined scenes.
+/// It includes smooth transitions with animations and prevents multiple simultaneous transitions.
+/// </summary>
 public class Teleportation : MonoBehaviour
 {
     [Header("Scene Names")]
-    private string baseSceneName = "BaseScene"; // Nombre de la escena base
-    private string explorationSceneName = "PlatformerScene"; // Nombre de la escena de exploración
+    [Tooltip("Name of the base scene to switch to.")]
+    private string baseSceneName = "BaseScene"; // Name of the base scene
+    [Tooltip("Name of the exploration scene to switch to.")]
+    private string explorationSceneName = "PlatformerScene"; // Name of the exploration scene
 
     [Header("Input Settings")]
-    public KeyCode transitionKey = KeyCode.T; // Tecla para cambiar de escena
+    [Tooltip("Key used to trigger scene transitions.")]
+    public KeyCode transitionKey = KeyCode.T; // Key to switch between scenes
 
     [Header("Transition Settings")]
-    public Animator transitionAnim; // Referencia al Animator para las transiciones
-    private bool isSwitching = false; // Previene múltiples cambios simultáneos
+    [Tooltip("Reference to the Animator controlling transition animations.")]
+    public Animator transitionAnim; // Reference to the Animator for transitions
+    private bool isSwitching = false; // Prevents multiple transitions at the same time
 
+    /// <summary>
+    /// Detects input to switch between scenes and initiates the transition process.
+    /// </summary>
     private void Update()
     {
+        // Check if the transition key is pressed and no transition is currently active
         if (Input.GetKeyDown(transitionKey) && !isSwitching)
         {
-            // Alterna entre las escenas
+            // Switch to the appropriate scene based on the current scene
             if (SceneManager.GetActiveScene().name == baseSceneName)
             {
                 SwitchScene(explorationSceneName);
@@ -31,37 +43,46 @@ public class Teleportation : MonoBehaviour
         }
     }
 
-  private void SwitchScene(string targetSceneName)
-{
-    // Guarda el estado de energía antes de cambiar de escena
-    isSwitching = true; // Bloquea cambios adicionales hasta que termine el actual
-    StartCoroutine(TransitionAndLoadScene(targetSceneName));
-}
+    /// <summary>
+    /// Initiates the scene switching process to the target scene.
+    /// </summary>
+    /// <param name="targetSceneName">The name of the scene to switch to.</param>
+    private void SwitchScene(string targetSceneName)
+    {
+        // Prevent additional transitions during the current switch
+        isSwitching = true;
+        StartCoroutine(TransitionAndLoadScene(targetSceneName));
+    }
+
+    /// <summary>
+    /// Handles the transition animation and asynchronous loading of the target scene.
+    /// </summary>
+    /// <param name="targetSceneName">The name of the scene to switch to.</param>
     private System.Collections.IEnumerator TransitionAndLoadScene(string targetSceneName)
     {
-        // Inicia la animación de final
-        
+        // Trigger the end animation if an Animator is assigned
         if (transitionAnim != null)
         {
             transitionAnim.SetTrigger("End");
         }
 
-        // Espera a que termine la animación de salida
-        yield return new WaitForSeconds(1f); // Ajusta al tiempo de tu animación
+        // Wait for the transition animation to finish
+        yield return new WaitForSeconds(1f); // Adjust this duration to match your animation
 
-        // Carga la escena de forma asíncrona
+        // Load the target scene asynchronously
         var operation = SceneManager.LoadSceneAsync(targetSceneName);
         while (!operation.isDone)
         {
-            yield return null; // Espera hasta que la escena esté completamente cargada
+            yield return null; // Wait until the scene is fully loaded
         }
-        
-        // Inicia la animación de inicio
+
+        // Trigger the start animation for the new scene if an Animator is assigned
         if (transitionAnim != null)
         {
             transitionAnim.SetTrigger("Start");
         }
 
-        isSwitching = false; // Permite más cambios de escena
+        // Allow new transitions after the current one completes
+        isSwitching = false;
     }
 }
