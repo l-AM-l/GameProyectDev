@@ -4,58 +4,58 @@ using TMPro;
 using System.Collections;
 
 /// <summary>
-/// NPCHapiness manages the happiness of an NPC, including its UI updates and
-/// the mechanics of happiness increase over time or based on events like job assignment.
+/// NPCHapiness gestiona la felicidad de un NPC, incluidas las actualizaciones de su interfaz de usuario y
+/// la mecánica de la felicidad aumenta con el tiempo o en función de eventos como la asignación de trabajo.
 /// </summary>
 public class NPCHapiness : MonoBehaviour
 {
-    // References
-    private NPC npc; // Reference to the associated NPC component
+    // Referencias
+    private NPC npc; // Referencia al componente NPC asociado
 
-    // Happiness properties
-    public float happiness = 10f; // Current happiness value
-    private float maxHappiness = 100f; // Maximum happiness value
-    private float happinessIncreaseRate = 10f; // Happiness increment when assigned a job
-    private float happinessOverTimeRate = 5f; // Happiness increment over time
-    private float timeInterval = 5f; // Time interval for periodic happiness increase
+    // Propiedades de felicidad
+    public float happiness = 10f; // Valor actual de felicidad
+    private float maxHappiness = 100f; // Valor máximo de felicidad
+    private float happinessIncreaseRate = 10f; // Incremento de felicidad al asignar un trabajo
+    private float happinessOverTimeRate = 5f; // Incremento de felicidad con el tiempo
+    private float timeInterval = 5f; // Intervalo de tiempo para el aumento periódico de felicidad
 
-    // UI Elements
-    public Slider happinessSlider; // Slider to display the current happiness
-    public TextMeshProUGUI happinessText; // Text to display happiness as a percentage
+    // Elementos de UI
+    public Slider happinessSlider; // Control deslizante para mostrar la felicidad actual
+    public TextMeshProUGUI happinessText; // Texto para mostrar la felicidad como un porcentaje
 
-    // Coroutine to handle happiness increase over time
+    // Coroutine para manejar el aumento de felicidad con el tiempo
     private Coroutine happinessCoroutine;
 
     /// <summary>
-    /// Retrieves the current happiness value.
+    /// Recupera el valor actual de felicidad.
     /// </summary>
-    /// <returns>The current happiness value as a float.</returns>
+    /// <returns>El valor actual de felicidad como un float.</returns>
     public float GetCurrentHappiness()
     {
         return happiness;
     }
 
     /// <summary>
-    /// Sets the happiness value, clamping it between 0 and maxHappiness.
-    /// Updates the happiness UI accordingly.
+    /// Establece el valor de felicidad, limitándolo entre 0 y maxHappiness.
+    /// Actualiza la UI de felicidad en consecuencia.
     /// </summary>
-    /// <param name="value">The new happiness value to set.</param>
+    /// <param name="value">El nuevo valor de felicidad a establecer.</param>
     public void SetHappiness(float value)
     {
-        happiness = Mathf.Clamp(value, 0, maxHappiness); // Ensure happiness stays within bounds
+        happiness = Mathf.Clamp(value, 0, maxHappiness); // Asegura que la felicidad se mantenga dentro de los límites
         UpdateHappinessUI();
     }
 
     /// <summary>
-    /// Initializes the happiness system and ensures UI elements are correctly set up.
+    /// Inicializa el sistema de felicidad y asegura que los elementos de UI estén configurados correctamente.
     /// </summary>
     public int npcID;
 
     private void Start()
     {
-        npc = GetComponent<NPC>(); // Get the NPC component
+        npc = GetComponent<NPC>(); // Obtener el componente NPC
 
-        // Validate UI references
+        // Validar referencias de UI
         if (happinessSlider == null)
         {
             Debug.Log("Happiness slider is not assigned");
@@ -65,17 +65,18 @@ public class NPCHapiness : MonoBehaviour
             Debug.Log("Happiness text is not assigned");
         }
 
-        // Set slider properties
+        // Establecer propiedades del control deslizante
         happinessSlider.maxValue = maxHappiness;
 
-        // Load saved happiness data
+        // Cargar datos de felicidad guardados
         LoadHappiness();
 
-        // Update UI
+        // Actualizar UI
         UpdateHappinessUI();
     }
-     /// <summary>
-    /// Saves the happiness percentage of this NPC to PlayerPrefs.
+    
+    /// <summary>
+    /// Guarda el porcentaje de felicidad de este NPC en PlayerPrefs.
     /// </summary>
     public void SaveHappiness()
     {
@@ -85,17 +86,17 @@ public class NPCHapiness : MonoBehaviour
     }
 
     /// <summary>
-    /// Loads the happiness percentage of this NPC from PlayerPrefs.
-    /// Defaults to 10% if no saved value exists.
+    /// Carga el porcentaje de felicidad de este NPC desde PlayerPrefs.
+    /// Por defecto, se establece en 10% si no existe un valor guardado.
     /// </summary>
     public void LoadHappiness()
     {
-        happiness = PlayerPrefs.GetFloat($"NPC_{npcID}_Happiness", 10f); // Default to 10%
+        happiness = PlayerPrefs.GetFloat($"NPC_{npcID}_Happiness", 10f); // Por defecto a 10%
         Debug.Log($"NPC {npcID} happiness loaded: {happiness}%");
     }
 
     /// <summary>
-    /// Clears saved happiness data for this NPC.
+    /// Borra los datos de felicidad guardados para este NPC.
     /// </summary>
     public void ClearHappinessData()
     {
@@ -106,30 +107,31 @@ public class NPCHapiness : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        SaveHappiness(); // Save happiness on game exit
+        SaveHappiness(); // Guardar felicidad al salir del juego
     }
+    
     /// <summary>
-    /// Increases the happiness by a fixed amount when the NPC is assigned a job.
+    /// Aumenta la felicidad por una cantidad fija cuando se asigna un trabajo al NPC.
     /// </summary>
     public void AssignJob()
     {
-        happiness = Mathf.Min(happiness + happinessIncreaseRate, maxHappiness); // Cap happiness at max
-        UpdateHappinessUI(); // Update the UI
+        happiness = Mathf.Min(happiness + happinessIncreaseRate, maxHappiness); // Limitar la felicidad al máximo
+        UpdateHappinessUI(); // Actualizar la UI
         Debug.Log("NPC happiness increased after assigning a job: " + happiness);
     }
 
     /// <summary>
-    /// Directly increases the happiness by a specified amount.
+    /// Aumenta directamente la felicidad por una cantidad especificada.
     /// </summary>
-    /// <param name="amount">The amount of happiness to add.</param>
+    /// <param name="amount">La cantidad de felicidad a añadir.</param>
     public void IncreaseHappiness(float amount)
     {
-        happiness = Mathf.Min(happiness + amount, maxHappiness); // Cap happiness at max
-        UpdateHappinessUI(); // Update the UI
+        happiness = Mathf.Min(happiness + amount, maxHappiness); // Limitar la felicidad al máximo
+        UpdateHappinessUI(); // Actualizar la UI
     }
 
     /// <summary>
-    /// Starts a coroutine to increase happiness periodically over time.
+    /// Inicia una coroutine para aumentar la felicidad periódicamente con el tiempo.
     /// </summary>
     public void StartIncreasingHappiness()
     {
@@ -141,7 +143,7 @@ public class NPCHapiness : MonoBehaviour
     }
 
     /// <summary>
-    /// Stops the coroutine that increases happiness over time.
+    /// Detiene la coroutine que aumenta la felicidad con el tiempo.
     /// </summary>
     public void StopIncreasingHappiness()
     {
@@ -154,37 +156,37 @@ public class NPCHapiness : MonoBehaviour
     }
 
     /// <summary>
-    /// Coroutine that periodically increases happiness while the NPC is employed.
-    /// Stops if the NPC becomes unemployed or reaches maximum happiness.
+    /// Coroutine que aumenta periódicamente la felicidad mientras el NPC está empleado.
+    /// Se detiene si el NPC queda desempleado o alcanza la felicidad máxima.
     /// </summary>
     private IEnumerator IncreaseHappinessOverTime()
     {
         while (happiness < maxHappiness)
         {
-            // Check if the NPC is unemployed
+            // Verificar si el NPC está desempleado
             if (npc.job == "Unemployed")
             {
                 Debug.Log("NPC became unemployed, stopping happiness coroutine");
                 StopIncreasingHappiness();
-                yield break; // Exit the coroutine
+                yield break; // Salir de la coroutine
             }
 
-            // Wait for the specified interval before increasing happiness
+            // Esperar el intervalo especificado antes de aumentar la felicidad
             yield return new WaitForSeconds(timeInterval);
 
-            // Increase happiness and log the updated value
+            // Aumentar la felicidad y registrar el valor actualizado
             IncreaseHappiness(happinessOverTimeRate);
             Debug.Log("Happiness increased to: " + happiness);
         }
     }
 
     /// <summary>
-    /// Updates the UI elements (slider and text) to reflect the current happiness.
+    /// Actualiza los elementos de UI (control deslizante y texto) para reflejar la felicidad actual.
     /// </summary>
     private void UpdateHappinessUI()
     {
-        happinessSlider.value = happiness; // Update the slider value
-        happinessText.text = Mathf.RoundToInt(happiness).ToString() + "%"; // Update the text
+        happinessSlider.value = happiness; // Actualizar el valor del control deslizante
+        happinessText.text = Mathf.RoundToInt(happiness).ToString() + "%"; // Actualizar el texto
         Debug.Log("Happiness UI updated: " + happiness + "%");
         SaveHappiness();
     }

@@ -6,104 +6,95 @@ using TMPro;
 using System;
 
 /// <summary>
-/// This script manages the behavior and properties of buildings in the game.
-/// It handles unlocking buildings, assigning NPCs, and interacting with the player.
-/// Additionally, it updates the UI with relevant information like building name,
-/// assigned NPCs, and unlock status.
+/// Este script gestiona el comportamiento y propiedades de los edificios en el juego.
+/// Incluye funcionalidades para desbloquear edificios, asignar NPCs, interactuar con el jugador
+/// y actualizar la interfaz de usuario (UI).
 /// </summary>
 public class Building : MonoBehaviour
 {
-    // Indicates if the player is near the building
+    // Indica si el jugador está cerca del edificio
     public bool isPlayerNearby = false;
 
-    // Maximum capacity for NPCs in this building
+    // Capacidad máxima de NPCs en este edificio
     public int maxCapacity;
 
-    // List of NPCs currently assigned to the building
+    // Lista de NPCs actualmente asignados al edificio
     public List<NPC> assignedNPCs;
 
-    // UI elements for building info
-    public GameObject buildingInfoUI; // Panel displaying building details
-    public TextMeshProUGUI buildingNameText; // Text displaying the building name
-    public TextMeshProUGUI npcInfoText; // Text displaying NPC assignments
+    // Elementos UI para información del edificio
+    public GameObject buildingInfoUI; // Panel para mostrar detalles del edificio
+    public TextMeshProUGUI buildingNameText; // Nombre del edificio
+    public TextMeshProUGUI npcInfoText; // Información de los NPCs asignados
 
-    // Building-specific properties
-    public BuildingType buildingType; // Type of the building (e.g., resource, crafting)
-    public int requiredEnergyToUnlock; // Energy required to unlock the building
-    private bool isUnlocked = false; // Tracks if the building is unlocked
+    // Propiedades específicas del edificio
+    public BuildingType buildingType; // Tipo de edificio (e.g., recurso, creación)
+    public int requiredEnergyToUnlock; // Energía requerida para desbloquear el edificio
+    public bool isUnlocked = false; // Estado de desbloqueo del edificio
 
-    // UI for unlocking the building
-    public GameObject lockUI; // Panel for unlocking the building
-    public TextMeshProUGUI costText; // Text displaying the unlock cost
-    public Button unlockButton; // Button to unlock the building
-  
+    // UI para desbloquear el edificio
+    public GameObject lockUI; // Panel de desbloqueo
+    public TextMeshProUGUI costText; // Costo de energía para desbloqueo
+    public Button unlockButton; // Botón para desbloquear el edificio
 
-    
     private void Start()
     {
-        // Load the unlock state at the start
+        // Inicializa el estado del edificio y asigna funcionalidad al botón de desbloqueo
         buildingInfoUI.SetActive(false);
-    LoadBuildingState();
-
-    // Ensure UI elements are hidden at the start
-    
-    //lockUI.SetActive(!isUnlocked); // Show lock UI if the building is locked
-
-    // Assign the unlock button's function
-    unlockButton.onClick.AddListener(AttemptUnlockBuilding);
+        LoadBuildingState();
+        unlockButton.onClick.AddListener(AttemptUnlockBuilding);
     }
 
     /// <summary>
-    /// Unlocks the building if the player has enough energy.
+    /// Desbloquea el edificio si el jugador tiene suficiente energía.
     /// </summary>
     public void UnlockBuilding()
-{
-    if (!isUnlocked)
     {
-        isUnlocked = true; // Mark the building as unlocked
-        GameManager.instance.UseEnergy(requiredEnergyToUnlock); // Deduct the required energy
-        SaveBuildingState(); // Save the unlock state
-        Debug.Log("Building unlocked: " + buildingType.ToString());
-        lockUI.SetActive(false); // Hide the unlock panel
+        if (!isUnlocked)
+        {
+            isUnlocked = true;
+            GameManager.instance.UseEnergy(requiredEnergyToUnlock);
+            SaveBuildingState();
+            Debug.Log("Building unlocked: " + buildingType.ToString());
+            lockUI.SetActive(false);
+            SaveBuildingState();
+        }
     }
-}   // <summary>
-/// Saves the building's state to PersistentData or PlayerPrefs.
-/// </summary>
-private void SaveBuildingState()
-{
-    PlayerPrefs.SetInt($"{buildingType}_isUnlocked", isUnlocked ? 1 : 0);
-    PlayerPrefs.Save(); // Ensure the data is written to disk
-    
-}
-private void OnApplicationQuit()
-{
-    // Clear all PlayerPrefs data
-    PlayerPrefs.DeleteAll();
-
-    // Ensure the changes are saved immediately
-    PlayerPrefs.Save();
-
-    Debug.Log("All saved data cleared on application quit.");
-}
-
-/// <summary>
-/// Loads the building's state from PersistentData or PlayerPrefs.
-/// </summary>
-private void LoadBuildingState()
-{
-    buildingInfoUI.SetActive(false);
-    isUnlocked = PlayerPrefs.GetInt($"{buildingType}_isUnlocked", 0) == 1; // Default to locked
-}
 
     /// <summary>
-    /// Attempts to unlock the building when the button is pressed.
-    /// Checks if the player has enough energy before unlocking.
+    /// Guarda el estado del edificio en PlayerPrefs.
+    /// </summary>
+    private void SaveBuildingState()
+    {
+        PlayerPrefs.SetInt($"{buildingType}_isUnlocked", isUnlocked ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    private void OnApplicationQuit()
+    {
+        // Limpia los datos guardados al salir del juego
+        PlayerPrefs.DeleteAll();
+        PlayerPrefs.Save();
+        Debug.Log("All saved data cleared on application quit.");
+    }
+
+    /// <summary>
+    /// Carga el estado del edificio desde PlayerPrefs.
+    /// </summary>
+    private void LoadBuildingState()
+    {
+        buildingInfoUI.SetActive(false);
+        isUnlocked = PlayerPrefs.GetInt($"{buildingType}_isUnlocked", 0) == 1;
+    }
+
+    /// <summary>
+    /// Intenta desbloquear el edificio verificando la energía del jugador.
     /// </summary>
     public void AttemptUnlockBuilding()
     {
         if (GameManager.instance.HasEnoughEnergy(requiredEnergyToUnlock))
         {
             UnlockBuilding();
+            SaveBuildingState();
         }
         else
         {
@@ -112,21 +103,21 @@ private void LoadBuildingState()
     }
 
     /// <summary>
-    /// Displays the unlock panel with the energy cost if the building is locked.
+    /// Muestra el panel de desbloqueo con el costo necesario.
     /// </summary>
     private void ShowUnlockPanel()
     {
         lockUI.SetActive(true);
         costText.text = "Cost: " + requiredEnergyToUnlock + " energy";
     }
-/// <summary>
-    /// Hides the unlock panel.
+
+    /// <summary>
+    /// Oculta el panel de desbloqueo.
     /// </summary>
     private void HideUnlockPanel()
     {
         lockUI.SetActive(false);
     }
-
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -137,7 +128,7 @@ private void LoadBuildingState()
 
             if (!isUnlocked) 
             {
-               // ShowUnlockPanel();
+                ShowUnlockPanel();
             }
         }
     }
@@ -152,18 +143,15 @@ private void LoadBuildingState()
             HideUnlockPanel();  
         }
     }
-
-
+    
     /// <summary>
-    /// Updates the building's UI to reflect its current state, including
-    /// the assigned NPCs and capacity.
+    /// Actualiza la UI del edificio con su estado actual y detalles de los NPCs asignados.
     /// </summary>
     public void UpdateBuildingUI()
     {
         buildingNameText.text = "Building Name: " + this.name;
         npcInfoText.text = "Assigned NPCs: " + assignedNPCs.Count + "/" + maxCapacity;
 
-        // Show additional NPC details
         if (assignedNPCs.Count > 0)
         {
             npcInfoText.text += "\n";
@@ -183,8 +171,8 @@ private void LoadBuildingState()
         }
     }
 
-/// <summary>
-    /// Toggles the display of building info or unlock panel based on the building's state.
+    /// <summary>
+    /// Alterna entre mostrar información del edificio o el panel de desbloqueo según su estado.
     /// </summary>
     private void Update()
     {
@@ -192,7 +180,6 @@ private void LoadBuildingState()
         {
             if (isUnlocked)
             {
-                // Toggle building info UI
                 if (buildingInfoUI.activeSelf)
                 {
                     buildingInfoUI.SetActive(false);
@@ -210,9 +197,8 @@ private void LoadBuildingState()
         }
     }
 
-     /// <summary>
-    /// Displays detailed information about the building, including
-    /// its name and assigned NPCs.
+    /// <summary>
+    /// Muestra información detallada del edificio, como su nombre y NPCs asignados.
     /// </summary>
     private void ShowBuildingInfo()
     {

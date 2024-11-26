@@ -6,22 +6,22 @@ public class NPCManager : MonoBehaviour
 
     private void Start()
     {
-        // Find all NPCs in the scene
+        // Encontrar todos los NPCs en la escena
         allNPCs = FindObjectsOfType<NPC>();
 
-        // Load all NPC states
+        // Cargar todos los estados de los NPCs
         foreach (NPC npc in allNPCs)
         {
-            npc.LoadNPCState(npc.npcID);
+            npc.LoadNPCState(npc.npcID); // Cargar el estado del NPC usando su ID
         }
     }
 
     private void OnApplicationQuit()
     {
-        // Save all NPC states on application quit
+        // Guardar todos los estados de los NPCs al cerrar la aplicación
         foreach (NPC npc in allNPCs)
         {
-            npc.SaveNPCState(npc.npcID);
+            npc.SaveNPCState(npc.npcID); // Guardar el estado del NPC usando su ID
         }
     }
 }

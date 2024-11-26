@@ -4,70 +4,70 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// MySceneManager handles scene transitions and ensures smooth transitions between scenes using animations.
-/// It also manages a singleton instance for global accessibility and prevents duplicate objects across scenes.
+/// MySceneManager maneja las transiciones de escena y asegura transiciones suaves entre escenas usando animaciones.
+/// También gestiona una instancia singleton para accesibilidad global y previene objetos duplicados entre escenas.
 /// </summary>
 public class MySceneManager : MonoBehaviour
 {
-    // Singleton instance for global access
+    // Instancia singleton para acceso global
     public static MySceneManager instance;
 
-    // Animator for managing scene transition animations
+    // Animator para gestionar las animaciones de transición de escena
     public Animator transitionAnim;
 
     /// <summary>
-    /// Ensures there is only one instance of MySceneManager in the game.
-    /// Keeps the object persistent across scenes.
+    /// Asegura que solo haya una instancia de MySceneManager en el juego.
+    /// Mantiene el objeto persistente entre escenas.
     /// </summary>
     private void Awake()
     {
         if (instance == null)
         {
-            instance = this; // Assign the instance
-            DontDestroyOnLoad(gameObject); // Make the object persistent across scenes
+            instance = this; // Asigna la instancia
+            DontDestroyOnLoad(gameObject); // Hace que el objeto sea persistente entre escenas
         }
         else
         {
-            Destroy(gameObject); // Destroy duplicate instances
+            Destroy(gameObject); // Destruye instancias duplicadas
         }
     }
 
     /// <summary>
-    /// Starts the process to load the next scene with a transition animation.
+    /// Inicia el proceso para cargar la siguiente escena con una animación de transición.
     /// </summary>
     public void NextScene()
     {
-        StartCoroutine(LoadLevel()); // Start the coroutine to load the next scene
+        StartCoroutine(LoadLevel()); // Inicia la coroutine para cargar la siguiente escena
     }
 
     /// <summary>
-    /// Detects when the player collides with the trigger and initiates the scene transition.
+    /// Detecta cuando el jugador colisiona con el trigger e inicia la transición de escena.
     /// </summary>
-    /// <param name="other">The collider that triggered the event.</param>
+    /// <param name="other">El collider que activó el evento.</param>
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player")) // Check if the player triggered the event
+        if (other.CompareTag("Player")) // Verifica si el jugador activó el evento
         {
-            NextScene(); // Start the scene transition
+            NextScene(); // Inicia la transición de escena
         }
     }
 
     /// <summary>
-    /// Coroutine to handle the scene transition process.
-    /// Plays the end animation, waits for it to complete, and then loads the next scene.
+    /// Coroutine para manejar el proceso de transición de escena.
+    /// Reproduce la animación de finalización, espera a que se complete y luego carga la siguiente escena.
     /// </summary>
     public IEnumerator LoadLevel()
     {
-        // Trigger the end transition animation
+        // Activa la animación de transición de finalización
         transitionAnim.SetTrigger("End");
 
-        // Wait for the animation to finish (adjust time as per animation length)
+        // Espera a que la animación termine (ajusta el tiempo según la duración de la animación)
         yield return new WaitForSeconds(1);
 
-        // Load the next scene asynchronously
+        // Carga la siguiente escena de manera asíncrona
         SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1);
 
-        // Trigger the start transition animation for the new scene
+        // Activa la animación de transición de inicio para la nueva escena
         transitionAnim.SetTrigger("Start");
     }
 }

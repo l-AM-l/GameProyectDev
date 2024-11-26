@@ -240,11 +240,14 @@ namespace HeneGames.DialogueSystem
 
 public void CheckAndDestroyCharacter()
 {
-        if (gameObject.CompareTag("Louise")||gameObject.CompareTag("NPC")){
-        {
-            // Inicia la corrutina para destruir después de 2 segundos
-            StartCoroutine(DestroyAndSpawnAfterDelay());
-        }
+    if (gameObject.CompareTag("Louise") || gameObject.CompareTag("Steven")|| gameObject.CompareTag("Juan")||gameObject.CompareTag("Tutorial"))
+    {
+        // Guarda el estado como destruido en PlayerPrefs
+        PlayerPrefs.SetInt(gameObject.name + "_Destroyed", 1);
+        PlayerPrefs.Save();
+
+        // Inicia la corrutina para destruir después de 2 segundos
+        StartCoroutine(DestroyAndSpawnAfterDelay());
     }
 }
 
@@ -255,6 +258,7 @@ public void CheckAndDestroyCharacter()
 
         // Destruye el personaje actual
         Destroy(gameObject);
+        
         
         if (gameObject.CompareTag("Louise")){
             Louise.SetActive(true);

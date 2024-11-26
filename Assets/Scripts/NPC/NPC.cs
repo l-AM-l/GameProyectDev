@@ -3,59 +3,54 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// NPC handles the behavior and interactions of Non-Player Characters in the game.
-/// This includes job assignments, movement, happiness management, and energy generation.
+/// NPC maneja el comportamiento y las interacciones de los personajes no jugadores en el juego.
+/// Esto incluye asignaciones de trabajo, movimiento, gestión de la felicidad y generación de energía.
 /// </summary>
 public class NPC : MonoBehaviour
 {
-    // Happiness management for the NPC
+    // Variables públicas para la felicidad, ID y tipo de NPC
     public NPCHapiness npcHapiness;
     public int npcID;
-    // NPC-specific details
-    public NPCtype nPCtype; // The type of NPC
-    public string job; // Current job of the NPC
+    public NPCtype nPCtype; 
+    public string job; 
 
-    // UI elements for displaying NPC information
-    public GameObject npcInfoUI; // UI panel for NPC details
-    public TextMeshProUGUI npcNameText; // Text for NPC name
-    public TextMeshProUGUI npcJobText; // Text for NPC job
-    public TMP_Dropdown jobDropdown; // Dropdown menu for assigning jobs
+    public GameObject npcInfoUI; 
+    public TextMeshProUGUI npcNameText;
+    public TextMeshProUGUI npcJobText; 
+    public TMP_Dropdown jobDropdown; 
 
-    // Building-related information
-    private Building building; // Current building assigned to the NPC
+    private Building building; 
+    public Vector3 targetPosition;     
+    public float moveSpeed = 2f; 
+    private bool isMovingToJob = false; 
 
-    // Movement properties
-    public Vector3 targetPosition; // Target position for the NPC to move to
-    public float moveSpeed = 2f; // Movement speed of the NPC
-    private bool isMovingToJob = false; // Indicates if the NPC is currently moving to a job
-
-    // Player interaction tracking
     private bool isPlayerNearby = false;
+    GameManager gameManager;
 
     /// <summary>
-    /// Initializes the NPC and hides the UI at the start.
+    /// Inicializa el NPC y oculta la interfaz de usuario al principio.    
     /// </summary>
     private void Start()
     {
-        npcInfoUI.SetActive(false); // Hide NPC info UI
-        npcHapiness = GetComponent<NPCHapiness>(); // Initialize happiness component
+        npcInfoUI.SetActive(false); 
+        npcHapiness = GetComponent<NPCHapiness>(); 
         LoadNPCState(npcID);
     }
+
     /// <summary>
-/// Saves the NPC's current position and job to PlayerPrefs.
+    /// Guarda la posición actual y el trabajo del NPC en PlayerPrefs.
 /// </summary>
 public void SaveNPCState(int npcID)
 {
-    // Save position
     PlayerPrefs.SetFloat($"NPC_{npcID}_PosX", transform.position.x);
     PlayerPrefs.SetFloat($"NPC_{npcID}_PosY", transform.position.y);
     PlayerPrefs.SetFloat($"NPC_{npcID}_PosZ", transform.position.z);
 
-    // Save job
     PlayerPrefs.SetString($"NPC_{npcID}_Job", string.IsNullOrEmpty(job) ? "Unassigned" : job);
 
     PlayerPrefs.Save();
@@ -63,17 +58,15 @@ public void SaveNPCState(int npcID)
 }
 
 /// <summary>
-/// Loads the NPC's position and job from PlayerPrefs.
+/// Carga la posición y el trabajo del NPC desde PlayerPrefs.
 /// </summary>
 public void LoadNPCState(int npcID)
 {
-    // Load position
     float posX = PlayerPrefs.GetFloat($"NPC_{npcID}_PosX", transform.position.x);
     float posY = PlayerPrefs.GetFloat($"NPC_{npcID}_PosY", transform.position.y);
     float posZ = PlayerPrefs.GetFloat($"NPC_{npcID}_PosZ", transform.position.z);
     transform.position = new Vector3(posX, posY, posZ);
 
-    // Load job
     job = PlayerPrefs.GetString($"NPC_{npcID}_Job", "Unassigned");
 
     if (job != "Unassigned")
@@ -85,102 +78,90 @@ public void LoadNPCState(int npcID)
             building = assignedBuilding;
             MoveToAssignedBuilding(assignedBuilding);
         }
+
+        // Reiniciar generación de energía
+        if (!string.IsNullOrEmpty(job))
+        {
+            StartEnergyGeneration(); // Inicia la generación de energía si el trabajo no está vacío
+        }
     }
 
     Debug.Log($"NPC {npcID} state loaded. Job: {job}, Position: {transform.position}");
 }
 
-    /// <summary>
-    /// Detects when the player enters the NPC's area.
-    /// </summary>
-    /// <param name="other">Collider that triggered the event.</param>
-    private void OnTriggerEnter2D(Collider2D other)
+private void OnTriggerEnter2D(Collider2D other)
+{
+    if (other.CompareTag("Player"))
     {
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("Player is nearby.");
-            isPlayerNearby = true;
-        }
+        Debug.Log("Player is nearby.");
+        isPlayerNearby = true; // Marca que el jugador está cerca
+    }
+}
+
+private void OnTriggerExit2D(Collider2D other)
+{
+    if (other.CompareTag("Player"))
+    {
+        Debug.Log("Player left.");
+        isPlayerNearby = false; // Marca que el jugador se ha alejado
+        npcInfoUI.SetActive(false); 
+    }
+}
+
+private void Update()
+{
+    if (isMovingToJob)
+    {
+        Debug.Log("NPC is moving...");
+        MoveToTarget(); // Mueve al NPC hacia el objetivo
     }
 
-    /// <summary>
-    /// Detects when the player leaves the NPC's area.
-    /// </summary>
-    /// <param name="other">Collider that triggered the event.</param>
-    private void OnTriggerExit2D(Collider2D other)
+    if (isPlayerNearby && Input.GetKeyDown(KeyCode.E))
     {
-        if (other.CompareTag("Player"))
+        if (npcInfoUI.activeSelf)
         {
-            Debug.Log("Player left.");
-            isPlayerNearby = false;
-            npcInfoUI.SetActive(false); // Hide UI when the player leaves
+            npcInfoUI.SetActive(false); // Oculta la información del NPC
+        }
+        else
+        {
+            Debug.Log("Showing NPC info.");
+            ShowNPCInfo(); // Muestra la información del NPC
         }
     }
+}
 
-    /// <summary>
-    /// Handles movement, interaction, and UI toggling.
-    /// </summary>
-    private void Update()
+/// <summary>
+/// Mueve al NPC hacia la posición objetivo asignada.
+/// </summary>
+private void MoveToTarget()
+{
+    if (targetPosition == null)
     {
-        if (isMovingToJob)
-        {
-            Debug.Log("NPC is moving...");
-            MoveToTarget();
-        }
-
-        if (isPlayerNearby && Input.GetKeyDown(KeyCode.E))
-        {
-            if (npcInfoUI.activeSelf)
-            {
-                npcInfoUI.SetActive(false); // Hide UI
-            }
-            else
-            {
-                Debug.Log("Showing NPC info.");
-                ShowNPCInfo(); // Show UI
-            }
-        }
+        Debug.Log("Target position is not set!"); // Verifica si la posición objetivo está establecida
+        return;
     }
 
- /// <summary>
-    /// Moves the NPC towards the assigned target position.
-    /// </summary>
-    private void MoveToTarget()
+    Vector3 horizontalTargetPosition = new Vector3(targetPosition.x, transform.position.y, transform.position.z);
+    float step = moveSpeed * Time.deltaTime;
+    transform.position = Vector3.MoveTowards(transform.position, horizontalTargetPosition, step);
+
+    if (Vector3.Distance(transform.position, horizontalTargetPosition) < 0.1f)
     {
-        if (targetPosition == null)
-        {
-            Debug.Log("Target position is not set!");
-            return;
-        }
-
-        // Move horizontally while keeping Y position constant
-        Vector3 horizontalTargetPosition = new Vector3(targetPosition.x, transform.position.y, transform.position.z);
-        float step = moveSpeed * Time.deltaTime;
-        transform.position = Vector3.MoveTowards(transform.position, horizontalTargetPosition, step);
-
-        // Stop movement when the target is reached
-        if (Vector3.Distance(transform.position, horizontalTargetPosition) < 0.1f)
-        {
-            isMovingToJob = false;
-            Debug.Log("NPC has arrived at the building.");
-            SaveNPCState(npcID);
-            npcHapiness.StartIncreasingHappiness(); // Start happiness increase
-        }
+        isMovingToJob = false; // Detiene el movimiento al llegar
+        Debug.Log("NPC has arrived at the building.");
+        SaveNPCState(npcID); // Guarda el estado del NPC al llegar
+        npcHapiness.StartIncreasingHappiness(); // Inicia el aumento de felicidad
     }
+}
 
-    /// <summary>
-    /// Assigns a target position for the NPC and starts movement.
-    /// </summary>
-    /// <param name="position">The target position for the NPC to move to.</param>
-    public void SetJobPosition(Vector3 position)
-    {
-        targetPosition = position;
-        isMovingToJob = true;
-        Debug.Log("NPC is moving to job at position: " + targetPosition);
-    }
+public void SetJobPosition(Vector3 position)
+{
+    targetPosition = position;
+    isMovingToJob = true; // Marca que el NPC se está moviendo hacia el trabajo
+    Debug.Log("NPC is moving to job at position: " + targetPosition);
+}
 
-
-    public static List<string> GetBuildingTypes()
+public static List<string> GetBuildingTypes()
 {
     List<string> buildingTypes = new List<string>();
     
@@ -194,158 +175,149 @@ public void LoadNPCState(int npcID)
 }
 
 /// <summary>
-    /// Displays the NPC info UI and initializes the job dropdown menu.
-    /// </summary>
-    private void ShowNPCInfo()
-    {
-        npcNameText.text = "Name: " + nPCtype.ToString();
-        npcJobText.text = "Job: " + (string.IsNullOrEmpty(job) ? "Unassigned" : job);
-
-        // Populate dropdown menu with job options
-        List<string> jobs = GetBuildingTypes();
-        jobs.Insert(0, "Unassigned");
-
-        jobDropdown.ClearOptions();
-        jobDropdown.AddOptions(jobs);
-
-        // Set dropdown value based on current job
-        jobDropdown.value = string.IsNullOrEmpty(job) ? 0 : jobs.IndexOf(job);
-
-        // Register job change listener
-        jobDropdown.onValueChanged.RemoveAllListeners();
-        jobDropdown.onValueChanged.AddListener(delegate { ChangeJob(jobDropdown); });
-
-        npcInfoUI.SetActive(true); // Show UI
-    }
-
- /// <summary>
-/// Changes the job of the NPC and updates the building assignment accordingly.
-/// Handles both assigning the NPC to a new building and unassigning if no job is selected.
+/// Muestra la interfaz de usuario de información de NPC e inicializa el menú desplegable del trabajo.    
 /// </summary>
-/// <param name="dropdown">The dropdown menu used to select the NPC's job.</param>
+private void ShowNPCInfo()
+{
+    npcNameText.text = "Name: " + nPCtype.ToString();
+    npcJobText.text = "Job: " + (string.IsNullOrEmpty(job) ? "Unassigned" : job);
+
+    List<string> jobs = GetBuildingTypes();
+    jobs.Insert(0, "Unassigned");
+
+    jobDropdown.ClearOptions();
+    jobDropdown.AddOptions(jobs);
+
+    jobDropdown.value = string.IsNullOrEmpty(job) ? 0 : jobs.IndexOf(job);
+
+    jobDropdown.onValueChanged.RemoveAllListeners();
+    jobDropdown.onValueChanged.AddListener(delegate { ChangeJob(jobDropdown); });
+
+    npcInfoUI.SetActive(true); // Muestra la interfaz de información del NPC
+}
+
+/// <summary>
+/// Cambia el trabajo del NPC y actualiza la asignación del edificio en consecuencia.
+/// Maneja tanto la asignación del NPC a un nuevo edificio como la desasignación si no se selecciona ningún trabajo.
+/// </summary>
+/// <param name="dropdown">El menú desplegable utilizado para seleccionar el trabajo del NPC.</param>
 public void ChangeJob(TMP_Dropdown dropdown)
 {
     Debug.Log("Job change initiated.");
 
-    // Remove NPC from the current building, if assigned
+    // Eliminar al NPC del edificio anterior, si está asignado
     if (building != null && building.assignedNPCs.Contains(this))
     {
-        building.assignedNPCs.Remove(this); // Remove NPC from the list in the current building
-        building.UpdateBuildingUI(); // Update the UI of the building
+        building.assignedNPCs.Remove(this);
+        building.UpdateBuildingUI(); // Actualiza la interfaz del edificio
     }
 
-    // Handle "Unassigned" job selection
+    // Si se selecciona "Unassigned", desasignar el trabajo
     if (dropdown.options[dropdown.value].text == "Unassigned")
     {
-        job = string.Empty; // Clear the job
-        npcJobText.text = "Job: Unassigned"; // Update the UI text
-        building = null; // Clear the current building reference
-        npcHapiness.StopIncreasingHappiness(); // Stop the happiness increase process
-        StopEnergyGeneration(); // Stop energy generation process
+        job = string.Empty; // Desasigna el trabajo
+        npcJobText.text = "Job: Unassigned";
+        building = null; // Limpia la referencia al edificio
+        npcHapiness.StopIncreasingHappiness(); // Detiene el aumento de felicidad
+        gameManager.StopEnergyGeneration(npcID); // Detiene la generación de energía
     }
     else
     {
-        // Assign the NPC to a new building based on the selected job
-        job = dropdown.options[dropdown.value].text; // Set the new job
-        npcJobText.text = "Job: " + job; // Update the UI text
+        job = dropdown.options[dropdown.value].text; // Asigna el nuevo trabajo
+        npcJobText.text = "Job: " + job;
 
-        Building newBuilding = FindBuildingByJob(job); // Locate the building corresponding to the new job
+        // Buscar el edificio asociado al trabajo seleccionado
+        Building newBuilding = FindBuildingByJob(job);
 
         if (newBuilding != null)
         {
-            // Check if the building has capacity
+            // Verificar si el edificio está desbloqueado
+            if (!newBuilding.isUnlocked)
+            {
+                Debug.LogWarning($"The building '{newBuilding.buildingType}' is locked. Cannot assign job.");
+                job = string.Empty; // No asignar el trabajo
+                npcJobText.text = "Job: Unassigned";
+                return;
+            }
+
+            // Verificar si el edificio tiene capacidad disponible
             if (newBuilding.assignedNPCs.Count >= newBuilding.maxCapacity)
             {
                 Debug.Log("Building capacity reached: " + newBuilding.buildingType);
-                job = string.Empty; // Reset the job
-                npcJobText.text = "Job: Unassigned"; // Update UI text
-                return; // Exit the function
+                job = string.Empty; // No asignar el trabajo
+                npcJobText.text = "Job: Unassigned";
+                return;
             }
 
-            // Assign the NPC to the new building
-            building = newBuilding; // Update the current building reference
-            newBuilding.assignedNPCs.Add(this); // Add NPC to the building's assigned list
-            building.UpdateBuildingUI(); // Update the building UI
-            MoveToAssignedBuilding(newBuilding); // Start NPC movement to the building
+            // Asignar el trabajo al NPC y al edificio
+            building = newBuilding;
+            newBuilding.assignedNPCs.Add(this);
+            building.UpdateBuildingUI(); // Actualiza la interfaz del edificio
+            MoveToAssignedBuilding(newBuilding); // Mueve al NPC al edificio asignado
 
-            npcHapiness.StartIncreasingHappiness(); // Start the happiness increase process
-            StartEnergyGeneration(); // Start the energy generation process
+            npcHapiness.StartIncreasingHappiness(); // Inicia el aumento de felicidad
+            StartEnergyGeneration(); // Inicia la generación de energía
+        }
+        else
+        {
+            Debug.LogWarning("Building not found for job: " + job);
+            job = string.Empty; // No asignar el trabajo
+            npcJobText.text = "Job: Unassigned";
         }
     }
 }
 
 private Coroutine energyGenerationCoroutine;
 
- /// <summary>
-    /// Starts the NPC's energy generation process.
-    /// </summary>
-    private void StartEnergyGeneration()
+/// <summary>
+/// Inicia el proceso de generación de energía del NPC.
+/// </summary>
+public void StartEnergyGeneration()
+{
+    if (!string.IsNullOrEmpty(job))
     {
-        if (energyGenerationCoroutine == null)
+        float happinessPercentage = npcHapiness.GetCurrentHappiness() / 100f;
+        GameManager.instance.StartEnergyGeneration(npcID, happinessPercentage); // Inicia la generación de energía
+    }
+}
+
+/// <summary>
+/// Genera energía a lo largo del tiempo basado en la felicidad del NPC.
+/// </summary>
+   
+/// <summary>
+/// Mueve al NPC a la posición del edificio asignado.
+/// </summary>
+/// <param name="building">El edificio al que moverse.</param>
+private void MoveToAssignedBuilding(Building building)
+{
+    if (building == null)
+    {
+        Debug.LogError("Building is null!"); // Verifica si el edificio es nulo
+        return;
+    }
+
+    Vector3 buildingPosition = building.transform.position;
+    SetJobPosition(buildingPosition); // Establece la posición del trabajo
+}
+
+/// <summary>
+/// Busca un edificio en la escena por tipo de trabajo.
+/// </summary>
+/// <param name="job">El nombre del trabajo a buscar.</param>
+/// <returns>El edificio que coincide con el nombre del trabajo, o null si no se encuentra.</returns>
+private Building FindBuildingByJob(string job)
+{
+    Building[] allBuildings = FindObjectsOfType<Building>();
+
+    foreach (Building b in allBuildings)
+    {
+        if (b.buildingType.ToString() == job)
         {
-            energyGenerationCoroutine = StartCoroutine(GenerateEnergyOverTime());
+            return b; // Retorna el edificio encontrado
         }
     }
 
-    /// <summary>
-    /// Stops the NPC's energy generation process.
-    /// </summary>
-    private void StopEnergyGeneration()
-    {
-        if (energyGenerationCoroutine != null)
-        {
-            StopCoroutine(energyGenerationCoroutine);
-            energyGenerationCoroutine = null;
-        }
-    }
- /// <summary>
-    /// Generates energy over time based on the NPC's happiness.
-    /// </summary>
-    private IEnumerator GenerateEnergyOverTime()
-    {
-        while (!string.IsNullOrEmpty(job))
-        {
-            float happinessPercentage = npcHapiness.GetCurrentHappiness() / 100f;
-            int energyGenerated = Mathf.CeilToInt(happinessPercentage * 5);
-            GameManager.instance.AddEnergy(energyGenerated);
-
-            Debug.Log($"{nPCtype} generated {energyGenerated} energy.");
-            yield return new WaitForSeconds(10f);
-        }
-    }
-    /// <summary>
-    /// Moves the NPC to the assigned building's position.
-    /// </summary>
-    /// <param name="building">The building to move to.</param>
-    private void MoveToAssignedBuilding(Building building)
-    {
-        if (building == null)
-        {
-            Debug.LogError("Building is null!");
-            return;
-        }
-
-        Vector3 buildingPosition = building.transform.position;
-        SetJobPosition(buildingPosition);
-    }
-
-    /// <summary>
-    /// Finds a building in the scene by job type.
-    /// </summary>
-    /// <param name="job">The job name to search for.</param>
-    /// <returns>The building matching the job name, or null if not found.</returns>
-    private Building FindBuildingByJob(string job)
-    {
-        Building[] allBuildings = FindObjectsOfType<Building>();
-
-        foreach (Building b in allBuildings)
-        {
-            if (b.buildingType.ToString() == job)
-            {
-                return b;
-            }
-        }
-
-        return null;
-    }
+    return null; // Retorna null si no se encuentra el edificio
+}
 }

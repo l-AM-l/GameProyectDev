@@ -1,165 +1,175 @@
+
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// GameManager manages global game states, including energy management
-/// and ensuring that the game object persists across scenes. 
-/// It provides utility methods for interacting with energy levels and tracks which character to activate in scenes.
+/// GameManager gestiona los estados globales del juego, incluyendo la gestión de energía
+/// y asegurando que el objeto del juego persista a través de las escenas. 
+/// Proporciona métodos útiles para interactuar con los niveles de energía y rastrea qué personaje activar en las escenas.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    // Singleton instance of the GameManager
+    // Instancia singleton del GameManager
     public static GameManager instance;
 
-
-    // Energy system properties
-    public int maxEnergy = 100; // Maximum energy value
-    public Slider energySlider; // UI slider to represent current energy
-    public TextMeshProUGUI energyText; // UI text to display current energy as a value
-
+    // Propiedades del sistema de energía
+    public int maxEnergy = 100; // Valor máximo de energía
+    public Slider energySlider; // Control deslizante de UI para representar la energía actual
+    public TextMeshProUGUI energyText; // Texto de UI para mostrar la energía actual como un valor
 
     /// <summary>
-    /// Initializes the energy slider and updates the energy UI when the game starts.
+    /// Inicializa el control deslizante de energía y actualiza la UI de energía cuando comienza el juego.
     /// </summary>
-    private void Start()
+    private Dictionary<int, Coroutine> npcEnergyCoroutines = new Dictionary<int, Coroutine>();
+
+    private void Awake()
     {
-        if (energySlider == null)
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public void StartEnergyGeneration(int npcID, float happinessPercentage)
     {
-        energySlider = FindObjectOfType<Slider>();
+        if (!npcEnergyCoroutines.ContainsKey(npcID))
+        {
+            // Inicia la generación de energía a lo largo del tiempo para el NPC especificado
+            npcEnergyCoroutines[npcID] = StartCoroutine(GenerateEnergyOverTime(npcID, happinessPercentage));
+        }
+    }
+
+    public void StopEnergyGeneration(int npcID)
+    {
+        if (npcEnergyCoroutines.ContainsKey(npcID))
+        {
+            // Detiene la generación de energía para el NPC especificado
+            StopCoroutine(npcEnergyCoroutines[npcID]);
+            npcEnergyCoroutines.Remove(npcID);
+        }
+    }
+
+    private IEnumerator GenerateEnergyOverTime(int npcID, float happinessPercentage)
+    {
+        while (true)
+        {
+            int energyGenerated = Mathf.CeilToInt(happinessPercentage * 5);
+            AddEnergy(energyGenerated);
+
+            Debug.Log($"NPC {npcID} generó {energyGenerated} energía.");
+            yield return new WaitForSeconds(5f); // Tiempo ajustable
+        }
+    }
+
+    public void AddEnergy(int amount)
+    {
+        maxEnergy = Mathf.Min(maxEnergy + amount, 100);
+        UpdateEnergyUI();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Actualiza referencias de UI
+        energySlider = GameObject.FindWithTag("EnergySlider")?.GetComponent<Slider>();
+        energyText = GameObject.FindWithTag("EnergyText")?.GetComponent<TextMeshProUGUI>();
+
         if (energySlider != null)
         {
             energySlider.maxValue = maxEnergy;
         }
         else
         {
-            Debug.LogWarning("Energy Slider not found in the scene.");
+            Debug.LogWarning("Control deslizante de energía no encontrado en la nueva escena.");
+        }
+
+        if (energyText != null)
+        {
+            energyText.text = "Energía: " + maxEnergy;
         }
     }
-        energySlider.maxValue = maxEnergy; // Set the maximum slider value to maxEnergy
-        UpdateEnergyUI(); // Update the UI to reflect the initial energy level
-    }
-   private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-{
-    // Reasignar referencias del Slider y TextMeshProUGUI en la nueva escena
-    
-    energySlider = GameObject.FindWithTag("EnergySlider")?.GetComponent<Slider>();
-energyText = GameObject.FindWithTag("EnergyText")?.GetComponent<TextMeshProUGUI>();
 
-    if (energySlider != null)
+    private void OnEnable()
     {
-        energySlider.maxValue = maxEnergy;
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
-    else
+
+    private void OnDisable()
     {
-        Debug.LogWarning("Energy Slider not found in the new scene.");
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
-
-    if (energyText == null)
-    {
-        Debug.LogWarning("Energy Text not found in the new scene.");
-    }
-
-    UpdateEnergyUI();
-}
-
-private void OnEnable()
-{
-    SceneManager.sceneLoaded += OnSceneLoaded;
-}
-
-private void OnDisable()
-{
-    SceneManager.sceneLoaded -= OnSceneLoaded;
-}
 
     /// <summary>
-    /// Updates the energy slider and text UI to reflect the current energy level.
+    /// Actualiza el control deslizante de energía y el texto de la UI para reflejar el nivel actual de energía.
     /// </summary>
     public void UpdateEnergyUI()
-{
-    if (energySlider != null)
     {
-        energySlider.value = maxEnergy;
-        Debug.Log($"Slider updated: {energySlider.value}");
-    }
-    else
-    {
-        Debug.LogWarning("Energy Slider is not assigned or found.");
-    }
-
-    if (energyText != null)
-    {
-        energyText.text = "Energía: " + maxEnergy;
-    }
-    else
-    {
-        Debug.LogWarning("Energy Text is not assigned.");
-    }
-}
-
-
-    /// <summary>
-    /// Ensures there is only one instance of GameManager and makes it persistent across scenes.
-    /// Destroys duplicate instances if they exist.
-    /// </summary>
-    private void Awake()
-    {
-        if (instance == null)
+        if (energySlider != null)
         {
-            instance = this; // Assign the instance
-            DontDestroyOnLoad(gameObject); // Keep this object across scenes
-            
+            energySlider.value = maxEnergy;
+            Debug.Log($"Control deslizante actualizado: {energySlider.value}");
         }
         else
         {
-            Destroy(gameObject); // Destroy duplicate instances
+            Debug.LogWarning("Control deslizante de energía no asignado o encontrado.");
+        }
+
+        if (energyText != null)
+        {
+            energyText.text = "Energía: " + maxEnergy;
+        }
+        else
+        {
+            Debug.LogWarning("Texto de energía no asignado.");
         }
     }
 
     /// <summary>
-    /// Checks if the player has enough energy for a specified requirement.
+    /// Asegura que solo haya una instancia de GameManager y la hace persistente a través de las escenas.
+    /// Destruye instancias duplicadas si existen.
     /// </summary>
-    /// <param name="requiredEnergy">The energy required for the action.</param>
-    /// <returns>True if the player has enough energy; otherwise, false.</returns>
+
+    /// <summary>
+    /// Verifica si el jugador tiene suficiente energía para un requisito especificado.
+    /// </summary>
+    /// <param name="requiredEnergy">La energía requerida para la acción.</param>
+    /// <returns>Verdadero si el jugador tiene suficiente energía; de lo contrario, falso.</returns>
     public bool HasEnoughEnergy(int requiredEnergy)
     {
         return maxEnergy >= requiredEnergy;
     }
 
     /// <summary>
-    /// Reduces the player's energy by the specified amount, ensuring it does not go below 0.
-    /// Updates the energy UI after consumption.
+    /// Reduce la energía del jugador por la cantidad especificada, asegurando que no baje de 0.
+    /// Actualiza la UI de energía después del consumo.
     /// </summary>
-    /// <param name="amount">The amount of energy to use.</param>
+    /// <param name="amount">La cantidad de energía a usar.</param>
     public void UseEnergy(int amount)
-{
-    if (maxEnergy <= 0)
     {
-        maxEnergy = 0;
-    }
-    else
-    {
-        maxEnergy -= amount;
-    }
+        if (maxEnergy <= 0)
+        {
+            maxEnergy = 0;
+        }
+        else
+        {
+            maxEnergy -= amount;
+        }
 
-    Debug.Log($"Energy used: {amount}, remaining: {maxEnergy}");
-    UpdateEnergyUI();
-}
-
+        Debug.Log($"Energía usada: {amount}, restante: {maxEnergy}");
+        UpdateEnergyUI();
+    }
 
     /// <summary>
-    /// Increases the player's energy by the specified amount, ensuring it does not exceed the maximum energy limit.
-    /// Updates the energy UI after addition.
+    /// Aumenta la energía del jugador por la cantidad especificada, asegurando que no exceda el límite máximo de energía.
+    /// Actualiza la UI de energía después de la adición.
     /// </summary>
-    /// <param name="amount">The amount of energy to add.</param>
-    public void AddEnergy(int amount)
-    {
-
-        maxEnergy = Mathf.Min(maxEnergy + amount, 100); // Ensure energy does not exceed the maximum
-        Debug.Log($"Current energy: {maxEnergy}");
-        UpdateEnergyUI(); // Update the energy UI
-    }
+    /// <param name="amount">La cantidad de energía a agregar.</param>
 }
